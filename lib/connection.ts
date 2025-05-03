@@ -3,7 +3,7 @@ import { connect, ConnectOptions } from "mongoose";
 let isConnected: boolean = false;
 export const connectDatabase = async () => {
   if (!process.env.DATABASE_URL) {
-    return console.error("database not connected");
+    throw new Error("DATABASE_URL is not defined in environment variables");
   }
 
   if (isConnected) return;
@@ -11,14 +11,28 @@ export const connectDatabase = async () => {
   try {
     const options: ConnectOptions = {
       dbName: "twitter-clone",
+      connectTimeoutMS: 30000, // 30 seconds
+      socketTimeoutMS: 45000, // 45 seconds
+      serverSelectionTimeoutMS: 30000, // 30 seconds
+      maxPoolSize: 10, // Maximum number of connections in the pool
+      minPoolSize: 5, // Minimum number of connections in the pool
       autoCreate: true,
+      retryWrites: true,
+      w: "majority",
     };
 
-    await connect(process.env.DATABASE_URL, options);
+    const connection = await connect(process.env.DATABASE_URL, options);
 
     isConnected = true;
-    console.log("Connected successfully");
+    console.log("MongoDB connected successfully:", 
+      connection.connection.host, 
+      connection.connection.name
+    );
+    return connection;
   } catch (error) {
-    console.log("error from database", error);
+    isConnected = false;
+    console.error("MongoDB connection error:", error);
+    // In production, you might want to retry or throw the error
+    throw error;
   }
 };
