@@ -61,6 +61,7 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
   const openFollowModal = async (type: string) => {
     try {
       setOpen(true);
+      setState(type as "following" | "followers");
       const data = await getFollowUser(user._id, type);
       if (type === "following") {
         setFollowing(data);
@@ -151,7 +152,10 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
                     "capitalize w-[50%] h-full flex justify-center items-center cursor-pointer font-semibold",
                     state === item && "border-b-[2px] border-sky-500 text-sky-500"
                   )}
-                  onClick={() => openFollowModal(item)}
+                  onClick={() => {
+                    setState(item as "following" | "followers");
+                    openFollowModal(item);
+                  }}
                 >
                   {item}
                 </div>
