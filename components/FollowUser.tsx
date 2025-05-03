@@ -4,7 +4,23 @@ import React from "react";
 import { Button } from "./ui/button";
 import User from "./User";
 
-const FollowUser = ({ users }: { users: IUser[] }) => {
+const FollowUser = ({ users }: { users: IUser[] | undefined }) => {
+  // If users is undefined, return early with a loading or empty state
+  if (!users) {
+    return (
+      <div className="py-4 hidden lg:block w-[266px]">
+        <div className="bg-neutral-800 rounded-xl">
+          <div className="flex items-center justify-between px-4 pt-4">
+            <h2 className="text-white text-xl font-semibold">Who to follow</h2>
+          </div>
+          <div className="flex justify-center items-center h-24">
+            Loading users...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="py-4 hidden lg:block w-[266px]">
       <div className="bg-neutral-800 rounded-xl">
@@ -15,14 +31,14 @@ const FollowUser = ({ users }: { users: IUser[] }) => {
           </Link>
         </div>
 
-        {!users?.length ? (
+        {users.length === 0 ? (
           <div className="flex justify-center items-center h-24">
-            No follower found
+            No users found to follow
           </div>
         ) : (
           <div>
-            {users?.map((user, index) => (
-              <Link key={index} href={`/profile/${user?._id}`}>
+            {users.map((user, index) => (
+              <Link key={user._id || index} href={`/profile/${user._id}`}>
                 <User user={user} />
               </Link>
             ))}

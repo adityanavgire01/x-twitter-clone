@@ -1,7 +1,6 @@
 "use client";
 import { IUser } from "@/types";
 import React, { useState } from "react";
-import EditModal from "./EditModal";
 import { Button } from "../ui/button";
 import useEditModal from "@/hooks/useEditModal";
 import EditProfileModal from "../modals/EditProfileModal";
@@ -23,18 +22,23 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
   const [state, setState] = useState<"following" | "followers">("following");
   const [isFetching, setIsFetching] = useState(false);
 
+  // Return early if user is not available
+  if (!user || !user._id) {
+    return <div className="text-white p-4">User profile not available</div>;
+  }
+
   const handleFollowUnfollow = async (isFollow: boolean) => {
     try {
       setIsLoading(true);
       await axios.put("/api/follows", {
-        userId: user?._id,
+        userId: user._id,
         currentUserId: userId,
         isFollow,
       });
       router.refresh();
       setIsLoading(false);
     } catch (error) {
-      console.log(error, "error");
+      console.log("Follow/unfollow error:", error);
       setIsLoading(false);
     }
   };
@@ -46,39 +50,42 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
         `/api/follows?state=${type}&userId=${userId}`
       );
       setIsFetching(false);
-      return data;
+      return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching follow data:", error);
+      setIsFetching(false);
+      return [];
     }
   };
+
   const openFollowModal = async (type: string) => {
     try {
       setOpen(true);
-      const data = await getFollowUser(user?._id, type);
-      if (type == "following") {
+      const data = await getFollowUser(user._id, type);
+      if (type === "following") {
         setFollowing(data);
       }
-      if (type == "followers") {
+      if (type === "followers") {
         setFollowers(data);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log("Error opening follow modal:", error);
+    }
   };
-  const onFollowersFollowing = (item: any) => {
-    setState(item);
-  };
+
   return (
     <>
       <EditProfileModal user={user} />
       <div className="border-b-[1px] border-neutral-800 pb-4">
         <div className="flex justify-end p-2">
-          {userId == user?._id ? (
+          {userId === user._id ? (
             <Button onClick={() => editModal.onOpen()}>Edit profile</Button>
           ) : (
             <Button
-              onClick={() => handleFollowUnfollow(user?.isFollowing)}
+              onClick={() => handleFollowUnfollow(!!user.isFollowing)}
               disabled={isLoading}
             >
-              {user?.isFollowing ? "Unfollow" : "Follow"}
+              {user.isFollowing ? "Unfollow" : "Follow"}
             </Button>
           )}
         </div>
@@ -116,7 +123,7 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
                 className="flex flex-row items-center gap-1 hover:underline cursor-pointer"
                 onClick={() => openFollowModal("following")}
               >
-                <p className="text-white">{user.following}</p>
+                <p className="text-white">{user.following || 0}</p>
                 <p className="text-neutral-500">Following</p>
               </div>
 
@@ -124,7 +131,7 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
                 className="flex flex-row items-center gap-1 hover:underline cursor-pointer"
                 onClick={() => openFollowModal("followers")}
               >
-                <p className="text-white">{user.followers}</p>
+                <p className="text-white">{user.followers || 0}</p>
                 <p className="text-neutral-500">Followers</p>
               </div>
             </div>
@@ -137,20 +144,18 @@ const ProfileBio = ({ user, userId }: { user: IUser; userId: string }) => {
         body={
           <>
             <div className="flex flex-row w-full py-3 px-4">
-              {["followers", "following"]?.map(
-                (item: string, index: number) => (
-                  <div
-                    className={cn(
-                      "capitalize w-[50%] h-full flex justify-center items-center cursor-pointer font-semibold",
-                      state === "followers" &&
-                        "border-b-[2px] border-sky-500 text-sky-500"
-                    )}
-                    onClick={() => openFollowModal(item)}
-                  >
-                    {item}
-                  </div>
-                )
-              )}
+              {["followers", "following"].map((item: string) => (
+                <div
+                  key={item}
+                  className={cn(
+                    "capitalize w-[50%] h-full flex justify-center items-center cursor-pointer font-semibold",
+                    state === item && "border-b-[2px] border-sky-500 text-sky-500"
+                  )}
+                  onClick={() => openFollowModal(item)}
+                >
+                  {item}
+                </div>
+              ))}
             </div>
 
             {isFetching ? (
