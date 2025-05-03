@@ -39,6 +39,7 @@ export interface IPost {
 
 import { Session } from "next-auth";
 
+// Extend the Session type from next-auth to include our custom currentUser property
 export interface ExtendedSession extends Session {
   currentUser?: IUser;
 }

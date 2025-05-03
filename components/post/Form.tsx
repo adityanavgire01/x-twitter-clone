@@ -13,10 +13,10 @@ interface Props {
   setPosts: Dispatch<SetStateAction<IPost[]>>;
   postId?: string;
   isComment?: boolean;
-  posts?: IPost[] | any;
+  posts?: IPost[];
 }
 const Form = ({
-  posts,
+  posts = [],
   placeholder,
   user,
   setPosts,
@@ -29,19 +29,26 @@ const Form = ({
   const [isLoading, setIsLoading] = useState(false);
   const [image, setImage] = useState("");
 
+  // If user is not available, don't render the form
+  if (!user || !user._id) {
+    return null;
+  }
+
   const onSubmit = async () => {
+    if (!text.trim()) return;
+    
     try {
       setIsLoading(true);
       if (isComment) {
         const { data } = await axios.post("/api/comments", {
           text,
-          userId: user?._id,
+          userId: user._id,
           postId,
         });
         const newComment = {
           ...data,
           user,
-          likes: 0,
+          likes: [],
           hasLiked: false,
         };
 
@@ -50,20 +57,20 @@ const Form = ({
         const { data } = await axios.post("/api/posts", {
           text,
           image,
-          userId: user?._id,
+          userId: user._id,
         });
 
         const newPost = {
           ...data,
           user,
-          comments: 0,
+          comments: [],
         };
-        setPosts([...posts, newPost]);
+        setPosts((prev) => [...prev, newPost]);
         setImage("");
       }
       setIsLoading(false);
       setText("");
-    } catch (error) {
+    } catch (err) {
       setIsLoading(false);
       toast({
         title: "Error",
@@ -79,16 +86,17 @@ const Form = ({
       setImage(img);
       router.refresh();
       setIsLoading(false);
-    } catch (error) {
+    } catch (err) {
       setIsLoading(false);
     }
   };
+  
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">
       <div className="flex gap-4">
         <Avatar>
-          <AvatarImage src={user.profilePhoto} />
-          <AvatarFallback>{user.name[0]}</AvatarFallback>
+          <AvatarImage src={user.profilePhoto || ''} />
+          <AvatarFallback>{user.name ? user.name[0] : '?'}</AvatarFallback>
         </Avatar>
         <div className="w-full">
           <textarea
@@ -97,7 +105,7 @@ const Form = ({
             disabled={isLoading}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+            onKeyDown={(e) => e.key === "Enter" && e.ctrlKey && onSubmit()}
           ></textarea>
           <hr className="opacity-0 peer-focus:opacity-100 h-0.5 w-full border-neutral-800 transition" />
           {!isComment && (
@@ -111,7 +119,7 @@ const Form = ({
           <div className="mt-4 flex flex-row justify-end">
             <Button
               className="px-8"
-              disabled={isLoading || !text}
+              disabled={isLoading || !text.trim()}
               onClick={onSubmit}
             >
               {isComment ? "Reply" : "Post"}

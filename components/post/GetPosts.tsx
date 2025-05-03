@@ -7,17 +7,21 @@ import { Loader2 } from "lucide-react";
 import Form from "./Form";
 import PostCard from "./PostCard";
 
-const GetPosts = ({ posts, loading }: { posts: IPost[]; loading: boolean }) => {
-  const [postList, setPostList] = useState(posts);
-  const { data: session, status }: any = useSession();
+const GetPosts = ({ posts, loading }: { posts: IPost[] | undefined; loading: boolean }) => {
+  const [postList, setPostList] = useState<IPost[]>(posts || []);
+  const { data: session, status } = useSession();
+  const user = session?.currentUser;
 
   useEffect(() => {
-    setPostList(posts);
+    if (posts) {
+      setPostList(posts);
+    }
   }, [posts]);
+
   return (
     <>
       <Header title="Home" />
-      {loading || status === "loading" ? (
+      {loading || status === "loading" || !user ? (
         <div className="flex justify-center items-center h-24">
           <Loader2 className="animate-spin text-sky-500" />
         </div>
@@ -25,19 +29,25 @@ const GetPosts = ({ posts, loading }: { posts: IPost[]; loading: boolean }) => {
         <>
           <Form
             placeholder="What's on your mind?"
-            user={JSON.parse(JSON.stringify(session.currentUser))}
+            user={user}
             setPosts={setPostList}
             posts={postList}
           />
-          {postList?.map((post) => (
-            <PostCard
-              key={post?._id}
-              post={post}
-              user={JSON.parse(JSON.stringify(session.currentUser))}
-              setPosts={setPostList}
-              posts={postList}
-            />
-          ))}
+          {postList && postList.length > 0 ? (
+            postList.map((post) => (
+              <PostCard
+                key={post?._id}
+                post={post}
+                user={user}
+                setPosts={setPostList}
+                posts={postList}
+              />
+            ))
+          ) : (
+            <div className="p-4 text-center text-neutral-500">
+              No posts to display. Create your first post!
+            </div>
+          )}
         </>
       )}
     </>
