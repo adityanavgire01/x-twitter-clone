@@ -7,6 +7,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Props {
   posts: IPost[];
@@ -20,10 +21,10 @@ const PostCard = ({ posts, post, user, setPosts }: Props) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLike, setIsLike] = useState(
-    post?.likes?.some((user: any) => user?._id == user?._id)
+    post?.likes?.some((likeUser: IUser) => likeUser?._id == user?._id)
   );
 
-  const handleLike = async (event: any) => {
+  const handleLike = async (event: React.MouseEvent) => {
     event.stopPropagation();
     try {
       setIsLoading(true);
@@ -42,11 +43,11 @@ const PostCard = ({ posts, post, user, setPosts }: Props) => {
           )
         );
         setIsLike(
-          data?.post?.likes?.some((user: any) => user?._id == user?._id)
+          data?.post?.likes?.some((likeUser: IUser) => likeUser?._id == user?._id)
         );
       }
       setIsLoading(false);
-    } catch (error) {
+    } catch (err) {
       return toast({
         title: "Error",
         description: "Something went wrong. Please try again later.",
@@ -59,7 +60,7 @@ const PostCard = ({ posts, post, user, setPosts }: Props) => {
     router.push(`/profile/${userId}`);
   };
 
-  const handleDelete = async (event: any) => {
+  const handleDelete = async (event: React.MouseEvent) => {
     event.stopPropagation();
 
     try {
@@ -77,7 +78,7 @@ const PostCard = ({ posts, post, user, setPosts }: Props) => {
           variant: "default",
         });
       }
-    } catch (error) {
+    } catch (err) {
       return toast({
         title: "Error",
         description: "Something went wrong. Please try again later.",
@@ -126,12 +127,15 @@ const PostCard = ({ posts, post, user, setPosts }: Props) => {
         <p className="text-white mt-1 text-xl" onClick={handlePost}>
           {post?.text}
         </p>
-        <div className="h-80 max-h-96 w-full" onClick={handlePost}>
-          <img
-            src={post?.image}
-            alt={post?.text}
-            className="w-full h-full object-cover rounded-md"
-          />
+        <div className="h-80 max-h-96 w-full relative" onClick={handlePost}>
+          {post?.image && (
+            <Image
+              src={post.image}
+              alt={post?.text || "Post image"}
+              fill
+              className="object-cover rounded-md"
+            />
+          )}
         </div>
         <div className="flex items-center mt-3 gap-10">
           <div className="flex text-neutral-500 items-center gap-2 cursor-pointer transition hover:text-sky-500">

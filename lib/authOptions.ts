@@ -1,4 +1,4 @@
-import { AuthOptions, getServerSession } from "next-auth";
+import { AuthOptions, getServerSession, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { connectDatabase } from "./connection";
@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session }: any) {
+    async session({ session }: { session: Session }) {
       await connectDatabase();
 
       const isExistingUser = await User.findOne({
@@ -39,10 +39,10 @@ export const authOptions: AuthOptions = {
           profilePhoto: session.user?.image,
         });
 
-        session.currentUser = newUser;
+        (session as any).currentUser = newUser;
       }
 
-      session.currentUser = isExistingUser;
+      (session as any).currentUser = isExistingUser;
 
       return session;
     },
