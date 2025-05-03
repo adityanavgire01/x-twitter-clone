@@ -1,5 +1,5 @@
 "use client";
-import { IPost } from "@/types";
+import { ExtendedSession, IPost } from "@/types";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import Header from "../common/Header";
@@ -10,7 +10,7 @@ import PostCard from "./PostCard";
 const GetPosts = ({ posts, loading }: { posts: IPost[] | undefined; loading: boolean }) => {
   const [postList, setPostList] = useState<IPost[]>(posts || []);
   const { data: session, status } = useSession();
-  const user = session?.currentUser;
+  const user = (session as ExtendedSession)?.currentUser;
 
   useEffect(() => {
     if (posts) {

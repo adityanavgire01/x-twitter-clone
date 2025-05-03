@@ -16,7 +16,6 @@ interface Props {
   posts?: IPost[];
 }
 const Form = ({
-  posts = [],
   placeholder,
   user,
   setPosts,
@@ -70,7 +69,7 @@ const Form = ({
       }
       setIsLoading(false);
       setText("");
-    } catch (err) {
+    } catch {
       setIsLoading(false);
       toast({
         title: "Error",
@@ -86,7 +85,7 @@ const Form = ({
       setImage(img);
       router.refresh();
       setIsLoading(false);
-    } catch (err) {
+    } catch {
       setIsLoading(false);
     }
   };
