@@ -4,29 +4,34 @@ import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const ProfileHero = ({ user }: { user: IUser }) => {
+  // Make sure user exists
+  if (!user) {
+    return <div className="h-44 relative bg-neutral-800"></div>;
+  }
+
   return (
     <div className="h-44 relative bg-neutral-800">
       {user.coverPhoto ? (
         <Image
           fill
           src={user.coverPhoto}
-          alt={user.name}
+          alt={user.name || 'User profile'}
           style={{ objectFit: "cover" }}
         />
       ) : (
         <Image
           fill
           src={"/images/cover-placeholder.png"}
-          alt={user.name}
+          alt={user.name || 'User profile'}
           style={{ objectFit: "cover" }}
         />
       )}
 
       <div className="absolute -bottom-16 left-4">
         <Avatar className="w-32 h-32">
-          <AvatarImage src={user.profilePhoto} />
-          <AvatarFallback className="text-7xl uppercase  bg-orange-400">
-            {user.name[0]}
+          <AvatarImage src={user.profilePhoto || ''} />
+          <AvatarFallback className="text-7xl uppercase bg-orange-400">
+            {user.name?.[0] || '?'}
           </AvatarFallback>
         </Avatar>
       </div>
