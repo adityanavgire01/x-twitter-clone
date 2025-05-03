@@ -16,14 +16,29 @@ export interface IUser {
   isFollowing: boolean;
 }
 
+export interface IComment {
+  _id: string;
+  text: string;
+  user: IUser;
+  createdAt: string;
+  updatedAt: string;
+  likes: string[];
+}
+
 export interface IPost {
   text: string;
   image: string;
-  comments: any;
+  comments: IComment[];
   createdAt: string;
-  likes: any;
+  likes: IUser[];
   updatedAt: string;
   user: IUser;
   _id: string;
   hasLiked: boolean;
+}
+
+import { Session } from "next-auth";
+
+export interface ExtendedSession extends Session {
+  currentUser?: IUser;
 }

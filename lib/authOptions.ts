@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { connectDatabase } from "./connection";
 import User from "@/models/user.model";
+import { ExtendedSession } from "@/types";
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -24,12 +25,14 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session }: { session: Session }) {
+    async session({ session }: { session: Session }): Promise<ExtendedSession> {
       await connectDatabase();
 
       const isExistingUser = await User.findOne({
         email: session?.user?.email,
       });
+
+      const extendedSession = session as ExtendedSession;
 
       if (!isExistingUser) {
         const newUser = await User.create({
@@ -39,12 +42,12 @@ export const authOptions: AuthOptions = {
           profilePhoto: session.user?.image,
         });
 
-        (session as any).currentUser = newUser;
+        extendedSession.currentUser = newUser;
+      } else {
+        extendedSession.currentUser = isExistingUser;
       }
 
-      (session as any).currentUser = isExistingUser;
-
-      return session;
+      return extendedSession;
     },
   },
   session: { strategy: "jwt" },
